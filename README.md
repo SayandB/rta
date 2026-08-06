@@ -1,127 +1,152 @@
-# DataKernel-OS
+# Rta (ऋत) — The Universal Order & Law
 
-DataKernel-OS is an AI-native operating system kernel for distributed enterprise lakehouses. It maps storage and execution concerns to AWS S3 and Databricks while orchestrating autonomous Spark agents for data engineering workloads.
+> An AI-Native Operating System Kernel for Distributed Enterprise Lakehouses
 
-## Why this project exists
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Apache Spark](https://img.shields.io/badge/Apache--Spark-3.3%2B-orange.svg)](https://spark.apache.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Rta is designed to make lakehouse operations feel like interacting with a distributed operating system rather than a collection of isolated tools. You can describe an intent in plain English, and the platform routes that intent into PySpark logic, orchestration, and execution flows.
+---
 
-## Key capabilities
+## 🏛️ Architecture Overview
 
-- AI-assisted translation of natural language requests into PySpark logic
-- Secure connectivity to S3 and Databricks through typed kernel abstractions
-- An interactive terminal shell for experimenting with intents and generated jobs
-- A modular structure for growing into richer agent-based orchestration workflows
+Unlike conventional operating systems that map file systems and CPU threads to local disk and hardware, Rta functions as an autonomous kernel mapping its runtime directly to cloud storage (AWS S3) and distributed lakehouse metastores (Databricks / Unity Catalog).
 
-## Architecture diagrams
+```text
+                  [ User Natural Language Input ]
+                                │
+                                ▼
+                     1. Terminal Shell (cli.py)
+                                │
+                                ▼
+                 2. Perception Engine (inspector.py) ◄── [ Unity Catalog Metadata ]
+                                │
+                                ▼
+               3. Intelligence Orchestrator (orchestrator.py) ◄── [ OmniRoute Proxy ]
+                                │
+                                ▼
+                4. AST Security Sandbox (validator.py)
+                                │
+                                ▼
+              5. Execution Agent (spark_agent.py) ──► [ PySpark Cluster ]
+                                │                         │
+                                ▼                         ▼
+                     [ S3 Lakehouse Storage ]   6. Self-Healing Loop
+                                                 (Traceback Repair)
+```
+
+---
+
+## 🔑 Core Features
+
+- 💻 Interactive Kernel Shell (cli.py): accepts natural language instructions to formulate and execute PySpark transformations.
+- 🔍 Live Schema Perception (inspector.py): queries Databricks Unity Catalog to ground AI code generation in real-time schema metadata.
+- 🤖 Intelligence Orchestrator (orchestrator.py): constructs context-rich prompts routed via proxy gateways (OmniRoute at http://localhost:20128/v1).
+- 🛡️ AST Security Sandbox (validator.py): parses generated Python AST to block dangerous system, execution, or persistent write calls (eval, exec, import, df.write, dbutils) before code execution.
+- ⚡ Distributed Execution Agent (spark_agent.py): submits validated transformations against an active Spark session.
+- 🔁 Self-Healing Loop: intercepts runtime AnalysisException and Py4J tracebacks, feeding structured error logs back to the orchestrator for real-time automated code repairs.
+
+---
+
+## 🧭 Architecture Diagrams
 
 ### System architecture and execution lifecycle
 
 ![System architecture execution lifecycle](docs/architecture/system_architecture_execution_lifecycle.png)
 
-This diagram highlights the end-to-end flow from the interactive shell through orchestration, sandbox validation, and distributed execution.
-
 ### Security sandbox isolation model
 
 ![Security sandbox isolation model](docs/architecture/ats_security_sandbox_isolation_model.png)
 
-This diagram shows how generated PySpark snippets are constrained inside a controlled execution namespace before they reach the Spark runtime.
+---
 
-## Repository layout
+## 📂 Repository Structure
 
-- [infra/terraform](infra/terraform): foundational infrastructure for S3 and Databricks
-- [src/datakernel_os/core](src/datakernel_os/core): kernel abstractions and secure connectivity helpers
-- [src/datakernel_os/agents](src/datakernel_os/agents): Spark execution agents and workload templates
-- [src/datakernel_os/core/orchestrator.py](src/datakernel_os/core/orchestrator.py): natural-language to PySpark translation layer
-- [src/datakernel_os/cli.py](src/datakernel_os/cli.py): interactive shell experience
-- [tests](tests): regression and integration coverage for the platform foundation
+```text
+rta/
 
-## Quick start
+├── infra/
+│   └── terraform/             # S3 bucket & Databricks cluster IaC
+├── src/
+│   └── datakernel_os/
+│       ├── agents/
+│       │   └── spark_agent.py # PySpark execution agent & self-healing retry loop
+│       ├── core/
+│       │   ├── inspector.py   # Unity Catalog schema perception engine
+│       │   ├── kernel.py      # S3 and Databricks connectivity abstraction
+│       │   ├── orchestrator.py# LLM code translation & feedback repair orchestrator
+│       │   └── validator.py   # AST security sandbox validator
+│       └── cli.py             # Interactive Rta terminal shell
+├── tests/                     # Test suite
+├── .env.example               # Environment template
+├── requirements.txt           # Python dependencies
+└── README.md
+```
+
+---
+
+## 🚀 Quickstart
 
 ### 1. Prerequisites
 
-Make sure you have:
+- Python 3.10+
+- Apache Spark / PySpark environment
+- AWS credentials (S3 access) and a Databricks workspace token
 
-- Python 3.10 or newer
-- Access to an AWS account with S3 access
-- A Databricks workspace and personal access token
-- An OmniRoute-compatible local gateway if you want LLM-based translation
-
-### 2. Install dependencies
+### 2. Environment Setup
 
 ```bash
+# Clone repository
+git clone https://github.com/SayandB/rta.git
+cd rta
+
+# Set up virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
-```
 
-### 3. Configure environment variables
-
-Copy the sample environment file and update it:
-
-```bash
+# Configure environment variables
 cp .env.example .env
 ```
 
-Then set the required values:
-
-- AWS_REGION
-- S3_BUCKET
-- DATABRICKS_HOST
-- DATABRICKS_TOKEN
-- AWS_ACCESS_KEY_ID
-- AWS_SECRET_ACCESS_KEY
-- OMNIROUTE_API_KEY
-
-### 4. Run the shell
-
-Start the interactive shell:
-
-```bash
-python -m datakernel_os.cli
-```
-
-Example prompts:
+Edit `.env` with your cloud credentials:
 
 ```text
-summarize the uploaded dataset
-create a PySpark job that counts rows by category
-show me a simple data transformation for the input files
+AWS_REGION=us-east-1
+S3_BUCKET=your-lakehouse-bucket
+DATABRICKS_HOST=https://your-workspace.cloud.databricks.com
+DATABRICKS_TOKEN=your-access-token
 ```
 
-The shell will attempt to generate PySpark code from your request and display it for inspection.
-
-## Example usage
-
-### Translate a request into PySpark
-
-The orchestrator can be used programmatically:
-
-```python
-import asyncio
-from datakernel_os.core.orchestrator import AgentOrchestrator
-
-orchestrator = AgentOrchestrator()
-result = asyncio.run(orchestrator.translate_intent_to_spark("count rows by region"))
-print(result)
-```
-
-### Run the test suite
+### 3. Launch the Rta Shell
 
 ```bash
-pytest -q
+python src/datakernel_os/cli.py
 ```
 
-## How to contribute
+---
 
-Contributions are welcome. A good contribution path is:
+## 🛡️ AST Sandbox Security Rules
 
-1. Fork the repository.
-2. Create a feature branch with a descriptive name such as `feature/add-new-agent`.
-3. Make your changes and add or update tests.
-4. Run the tests locally.
-5. Open a pull request with a clear summary of the change.
+The AST validator enforces a strict read-bounded execution sandbox:
 
-Please keep changes focused, documented, and easy to review. If you are introducing new functionality, include examples or notes in the README where helpful.
+| Category | Permitted | Blocked |
+| --- | --- | --- |
+| Transformations | df.select, df.filter, df.groupBy, df.withColumn, F.col, F.lit | df.write, df.writeStream, saveAsTable |
+| System Calls | None | eval(), exec(), open(), compile() |
+| Imports | Pre-injected pyspark.sql.functions | import os, import sys, ast.Import |
+| Platform Tools | None | dbutils, subprocess |
 
-## Development notes
+---
 
-This repository currently establishes the foundation for the platform and is intended to evolve into a full distributed kernel runtime. Future work will focus on richer agent coordination, self-healing workflows, and deeper integration with cloud-native data platforms.
+## 🤝 Contributing
+
+Contributions are welcome. Please feel free to open an issue or submit a pull request for new kernel features, AST sandbox rules, or orchestrator improvements.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
