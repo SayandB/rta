@@ -13,6 +13,20 @@ Rta is designed to make lakehouse operations feel like interacting with a distri
 - An interactive terminal shell for experimenting with intents and generated jobs
 - A modular structure for growing into richer agent-based orchestration workflows
 
+## Architecture diagrams
+
+### System architecture and execution lifecycle
+
+![System architecture execution lifecycle](docs/architecture/system_architecture_execution_lifecycle.png)
+
+This diagram highlights the end-to-end flow from the interactive shell through orchestration, sandbox validation, and distributed execution.
+
+### Security sandbox isolation model
+
+![Security sandbox isolation model](docs/architecture/ats_security_sandbox_isolation_model.png)
+
+This diagram shows how generated PySpark snippets are constrained inside a controlled execution namespace before they reach the Spark runtime.
+
 ## Repository layout
 
 - [infra/terraform](infra/terraform): foundational infrastructure for S3 and Databricks
