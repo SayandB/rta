@@ -6,10 +6,14 @@ import os
 from dataclasses import dataclass
 from typing import Any, Optional
 
+from dotenv import load_dotenv
+
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.errors import DatabricksError
+
+load_dotenv()
 
 
 class KernelConnectionError(RuntimeError):
@@ -33,6 +37,8 @@ class DataKernelOSKernel:
 
     def __init__(self, config: KernelConfig) -> None:
         self.config = config
+        # Keep the lazily initialized client handles in private attributes so the
+        # public properties can be read safely after construction.
         self._s3_client: Optional[Any] = None
         self._workspace_client: Optional[WorkspaceClient] = None
 
