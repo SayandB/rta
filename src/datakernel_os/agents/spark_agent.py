@@ -2,23 +2,27 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
-from typing import Any, Optional
+import traceback
+from typing import Any
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 
 from datakernel_os.core.kernel import DataKernelOSKernel, KernelConfig, KernelConnectionError
+from datakernel_os.core.orchestrator import AgentOrchestrator
+from datakernel_os.core.validator import CodeValidator, SecurityException
 
 
 class SparkExecutionAgent:
     """Submit distributed PySpark workloads against a Databricks cluster."""
 
-    # The agent intentionally keeps its execution pathway simple so it can be extended
-    # into richer planning and optimization loops later.
-
-    def __init__(self, kernel: DataKernelOSKernel) -> None:
+    def __init__(
+        self, kernel: DataKernelOSKernel, validator: CodeValidator | None = None
+    ) -> None:
         self.kernel = kernel
+        self.validator = validator or CodeValidator()
 
     def build_dataframe(self, input_path: str, table_name: str) -> DataFrame:
         """Create a DataFrame from a lakehouse or object-store path."""
@@ -39,7 +43,6 @@ class SparkExecutionAgent:
     def submit_job(self, objective: str, input_path: str, output_path: str) -> str:
         """Construct and submit a distributed Spark job securely."""
         try:
-            spark = self._build_spark_session()
             df = self.build_dataframe(input_path=input_path, table_name="raw")
             transformed = self.transform(df, objective=objective)
             transformed.write.mode("overwrite").parquet(output_path)
@@ -50,6 +53,68 @@ class SparkExecutionAgent:
             ) from exc
         except Exception as exc:  # pylint: disable=broad-except
             raise RuntimeError("Unexpected Spark execution failure") from exc
+
+    def submit_with_retry(
+        self,
+        generated_code: str,
+        input_path: str,
+        output_path: str,
+        *,
+        orchestrator: AgentOrchestrator | None = None,
+        objective: str | None = None,
+        max_retries: int = 3,
+    ) -> str:
+        """Execute validated code and repair it after runtime failures."""
+        if not generated_code.strip():
+            raise ValueError("Generated code cannot be empty")
+
+        current_code = generated_code
+        last_error: Exception | None = None
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                self.validator.validate(current_code)
+                spark = self._build_spark_session()
+                df = self.build_dataframe(input_path=input_path, table_name="raw")
+                namespace: dict[str, Any] = {
+                    "__builtins__": __builtins__,
+                    "df": df,
+                    "F": F,
+                    "objective": objective or "",
+                    "output_path": output_path,
+                }
+                exec(current_code, namespace, namespace)
+                return output_path
+            except SecurityException as exc:
+                raise RuntimeError("Generated code failed sandbox validation") from exc
+            except Exception as exc:  # pylint: disable=broad-except
+                last_error = exc
+                error_traceback = "".join(
+                    traceback.format_exception(type(exc), exc, exc.__traceback__)
+                )
+                if attempt >= max_retries:
+                    raise RuntimeError(
+                        "Spark execution failed after retries"
+                    ) from exc
+                if orchestrator is None:
+                    continue
+                try:
+                    corrected_code = asyncio.run(
+                        orchestrator.repair_code_with_feedback(
+                            original_code=current_code,
+                            failure_traceback=error_traceback,
+                            user_query=objective,
+                        )
+                    )
+                    current_code = corrected_code
+                except RuntimeError as repair_error:
+                    raise RuntimeError(
+                        "Spark execution failed and could not be repaired"
+                    ) from repair_error
+
+        if last_error is not None:
+            raise RuntimeError("Spark execution failed after retries") from last_error
+        raise RuntimeError("Spark execution failed unexpectedly")
 
     def _build_spark_session(self) -> SparkSession:
         try:
