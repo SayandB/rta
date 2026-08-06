@@ -1,9 +1,10 @@
-"""Spark execution agent template for DataKernel-OS."""
+"""Spark execution agent with AST validation and self-healing retries."""
 
 from __future__ import annotations
 
 import asyncio
 import os
+import re
 import traceback
 from typing import Any
 
@@ -13,6 +14,17 @@ from pyspark.sql import functions as F
 from datakernel_os.core.kernel import DataKernelOSKernel, KernelConfig, KernelConnectionError
 from datakernel_os.core.orchestrator import AgentOrchestrator
 from datakernel_os.core.validator import CodeValidator, SecurityException
+
+
+def clean_code_block(code: str) -> str:
+    """Strip markdown fences from generated code before execution."""
+    if not code or not code.strip():
+        return ""
+
+    match = re.search(r"```(?:python)?\s*(.*?)\s*```", code, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    return code.strip()
 
 
 class SparkExecutionAgent:
@@ -28,7 +40,11 @@ class SparkExecutionAgent:
         """Create a DataFrame from a lakehouse or object-store path."""
         try:
             spark = self._build_spark_session()
-            return spark.read.option("header", True).csv(input_path)
+            if input_path and (input_path.startswith("s3://") or input_path.startswith("dbfs:/") or os.path.exists(input_path)):
+                return spark.read.option("header", True).csv(input_path)
+            if table_name:
+                return spark.table(table_name)
+            raise ValueError("No valid input path or table name was provided")
         except Exception as exc:  # pylint: disable=broad-except
             raise RuntimeError(f"Failed to read input data from {input_path}") from exc
 
@@ -54,7 +70,7 @@ class SparkExecutionAgent:
         except Exception as exc:  # pylint: disable=broad-except
             raise RuntimeError("Unexpected Spark execution failure") from exc
 
-    def submit_with_retry(
+    async def submit_with_retry_async(
         self,
         generated_code: str,
         input_path: str,
@@ -63,23 +79,42 @@ class SparkExecutionAgent:
         orchestrator: AgentOrchestrator | None = None,
         objective: str | None = None,
         max_retries: int = 3,
+        table_name: str = "raw",
     ) -> str:
         """Execute validated code and repair it after runtime failures."""
-        if not generated_code.strip():
+        current_code = clean_code_block(generated_code)
+        if not current_code:
             raise ValueError("Generated code cannot be empty")
 
-        current_code = generated_code
         last_error: Exception | None = None
 
         for attempt in range(1, max_retries + 1):
             try:
                 self.validator.validate(current_code)
                 spark = self._build_spark_session()
-                df = self.build_dataframe(input_path=input_path, table_name="raw")
+                df = self.build_dataframe(input_path=input_path, table_name=table_name)
+
+                # Restrict the execution namespace to the dataframe and a small set
+                # of safe helpers so generated snippets cannot reach the broader
+                # Python runtime or write to storage directly.
+                safe_builtins = {
+                    "len": len,
+                    "range": range,
+                    "list": list,
+                    "dict": dict,
+                    "str": str,
+                    "int": int,
+                    "float": float,
+                    "bool": bool,
+                    "print": print,
+                }
                 namespace: dict[str, Any] = {
-                    "__builtins__": __builtins__,
+                    "__builtins__": safe_builtins,
                     "df": df,
                     "F": F,
+                    "col": F.col,
+                    "lit": F.lit,
+                    "spark": spark,
                     "objective": objective or "",
                     "output_path": output_path,
                 }
@@ -93,28 +128,53 @@ class SparkExecutionAgent:
                     traceback.format_exception(type(exc), exc, exc.__traceback__)
                 )
                 if attempt >= max_retries:
-                    raise RuntimeError(
-                        "Spark execution failed after retries"
-                    ) from exc
+                    raise RuntimeError("Spark execution failed after retries") from exc
                 if orchestrator is None:
                     continue
                 try:
-                    corrected_code = asyncio.run(
-                        orchestrator.repair_code_with_feedback(
-                            original_code=current_code,
-                            failure_traceback=error_traceback,
-                            user_query=objective,
-                        )
+                    corrected_code = await orchestrator.repair_code_with_feedback(
+                        original_code=current_code,
+                        failure_traceback=error_traceback[-2000:],
+                        user_query=objective,
                     )
-                    current_code = corrected_code
+                    current_code = clean_code_block(corrected_code)
                 except RuntimeError as repair_error:
-                    raise RuntimeError(
-                        "Spark execution failed and could not be repaired"
-                    ) from repair_error
+                    raise RuntimeError("Spark execution failed and could not be repaired") from repair_error
 
         if last_error is not None:
             raise RuntimeError("Spark execution failed after retries") from last_error
         raise RuntimeError("Spark execution failed unexpectedly")
+
+    def submit_with_retry(
+        self,
+        generated_code: str,
+        input_path: str,
+        output_path: str,
+        *,
+        orchestrator: AgentOrchestrator | None = None,
+        objective: str | None = None,
+        max_retries: int = 3,
+        table_name: str = "raw",
+    ) -> str:
+        """Synchronous wrapper for callers that are not already inside an event loop."""
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(
+                self.submit_with_retry_async(
+                    generated_code=generated_code,
+                    input_path=input_path,
+                    output_path=output_path,
+                    orchestrator=orchestrator,
+                    objective=objective,
+                    max_retries=max_retries,
+                    table_name=table_name,
+                )
+            )
+
+        raise RuntimeError(
+            "An active event loop is already running; use submit_with_retry_async instead"
+        )
 
     def _build_spark_session(self) -> SparkSession:
         try:
