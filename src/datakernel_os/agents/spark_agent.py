@@ -11,7 +11,11 @@ from typing import Any
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 
-from datakernel_os.core.kernel import DataKernelOSKernel, KernelConfig, KernelConnectionError
+from datakernel_os.core.kernel import (
+    DataKernelOSKernel,
+    KernelConfig,
+    KernelConnectionError,
+)
 from datakernel_os.core.orchestrator import AgentOrchestrator
 from datakernel_os.core.validator import CodeValidator, SecurityException
 
@@ -40,7 +44,9 @@ class SparkExecutionAgent:
         """Create a DataFrame from a lakehouse or object-store path."""
         try:
             spark = self._build_spark_session()
-            if input_path and (input_path.startswith("s3://") or input_path.startswith("dbfs:/") or os.path.exists(input_path)):
+            if input_path and (
+                input_path.startswith(("s3://", "dbfs:/")) or os.path.exists(input_path)
+            ):
                 return spark.read.option("header", True).csv(input_path)
             if table_name:
                 return spark.table(table_name)
@@ -118,7 +124,7 @@ class SparkExecutionAgent:
                     "objective": objective or "",
                     "output_path": output_path,
                 }
-                exec(current_code, namespace, namespace)
+                exec(current_code, namespace, namespace)  # noqa: S102 - AST-validated sandbox execution.
                 return output_path
             except SecurityException as exc:
                 raise RuntimeError("Generated code failed sandbox validation") from exc
@@ -139,7 +145,9 @@ class SparkExecutionAgent:
                     )
                     current_code = clean_code_block(corrected_code)
                 except RuntimeError as repair_error:
-                    raise RuntimeError("Spark execution failed and could not be repaired") from repair_error
+                    raise RuntimeError(
+                        "Spark execution failed and could not be repaired"
+                    ) from repair_error
 
         if last_error is not None:
             raise RuntimeError("Spark execution failed after retries") from last_error

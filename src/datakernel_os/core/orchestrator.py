@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import re
-from typing import Any
 
 from dotenv import load_dotenv
 from openai import AsyncOpenAI, OpenAIError
@@ -95,9 +94,7 @@ class AgentOrchestrator:
         except (OpenAIError, TimeoutError, OSError) as exc:
             raise RuntimeError("LLM repair request failed") from exc
 
-    def _build_prompt(
-        self, user_query: str, schema_context: str | None = None
-    ) -> str:
+    def _build_prompt(self, user_query: str, schema_context: str | None = None) -> str:
         prompt = (
             "Translate the following natural language request into a single "
             "PySpark snippet that uses the provided dataframe namespace. "

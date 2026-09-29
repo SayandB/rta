@@ -27,7 +27,9 @@ class ScalePolicy:
     load_threshold: float = 0.75
     min_workers: int = 1
 
-    def decide(self, *, balance: float, load: float, active_workers: int) -> ScaleDecision:
+    def decide(
+        self, *, balance: float, load: float, active_workers: int
+    ) -> ScaleDecision:
         if balance <= self.min_budget:
             return ScaleDecision(
                 action="scale_in",
@@ -70,5 +72,9 @@ class ScaleEngine:
     def __init__(self, policy: ScalePolicy | None = None) -> None:
         self.policy = policy or ScalePolicy()
 
-    def decide(self, *, balance: float, load: float, active_workers: int) -> ScaleDecision:
-        return self.policy.decide(balance=balance, load=load, active_workers=active_workers)
+    def decide(
+        self, *, balance: float, load: float, active_workers: int
+    ) -> ScaleDecision:
+        return self.policy.decide(
+            balance=balance, load=load, active_workers=active_workers
+        )

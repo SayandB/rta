@@ -3,4 +3,9 @@
 from .evaluator import SelfEvaluationEngine, TelemetrySignal
 from .planner import EvolutionRecommendation, RuntimePlanner
 
-__all__ = ["SelfEvaluationEngine", "TelemetrySignal", "EvolutionRecommendation", "RuntimePlanner"]
+__all__ = [
+    "EvolutionRecommendation",
+    "RuntimePlanner",
+    "SelfEvaluationEngine",
+    "TelemetrySignal",
+]

@@ -45,7 +45,9 @@ class AgentLoop:
         storage_root: str | None = None,
     ) -> None:
         self.router = router or OmniRouteRouter(config=OmniRouteConfig())
-        self.memory_store = memory_store or MemoryStore(root_dir=storage_root or "/tmp/rta_runtime_memory")
+        self.memory_store = memory_store or MemoryStore(
+            root_dir=storage_root or "/tmp/rta_runtime_memory"
+        )
         self.sandbox_runner = sandbox_runner or SandboxRunner(timeout_seconds=10)
         self.system_graph = system_graph or SystemGraph(name="rta")
         self._register_default_modules()
@@ -59,16 +61,26 @@ class AgentLoop:
             "observer": "intelligence",
             "wallet": "economics",
         }.items():
-            self.system_graph.register(SystemModule(name=module_name, kind=kind, enabled=True))
+            self.system_graph.register(
+                SystemModule(name=module_name, kind=kind, enabled=True)
+            )
 
-    def run(self, prompt: str, system_prompt: str | None = None, *, code: str | None = None, context: dict[str, Any] | None = None) -> AgentTaskResult:
+    def run(
+        self,
+        prompt: str,
+        system_prompt: str | None = None,
+        *,
+        code: str | None = None,
+        context: dict[str, Any] | None = None,
+    ) -> AgentTaskResult:
         """Run a single task and persist the request/response in memory."""
         if not prompt or not prompt.strip():
             raise ValueError("Prompt cannot be empty")
 
         task = AgentTask(
             prompt=prompt.strip(),
-            system_prompt=system_prompt or "You are a focused autonomous systems agent.",
+            system_prompt=system_prompt
+            or "You are a focused autonomous systems agent.",
             context=context or {},
             code=code,
         )
@@ -93,7 +105,9 @@ class AgentLoop:
                 "system_prompt": task.system_prompt,
                 "context": task.context,
                 "payload": payload,
-                "sandbox_result": None if sandbox_result is None else {
+                "sandbox_result": None
+                if sandbox_result is None
+                else {
                     "success": sandbox_result.success,
                     "exit_code": sandbox_result.exit_code,
                     "stdout": sandbox_result.stdout,

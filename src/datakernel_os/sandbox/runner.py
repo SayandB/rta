@@ -8,7 +8,6 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 
 @dataclass(slots=True)
@@ -26,7 +25,9 @@ class SandboxResult:
 class SandboxRunner:
     """Execute Python snippets in an isolated working directory with bounded time."""
 
-    def __init__(self, work_dir: str | Path | None = None, timeout_seconds: int = 10) -> None:
+    def __init__(
+        self, work_dir: str | Path | None = None, timeout_seconds: int = 10
+    ) -> None:
         self.work_dir = Path(work_dir) if work_dir is not None else None
         self.timeout_seconds = timeout_seconds
 
@@ -35,7 +36,9 @@ class SandboxRunner:
         timeout = self.timeout_seconds if timeout_seconds is None else timeout_seconds
         started = time.perf_counter()
 
-        with tempfile.TemporaryDirectory(dir=str(self.work_dir) if self.work_dir else None) as tmp_dir:
+        with tempfile.TemporaryDirectory(
+            dir=str(self.work_dir) if self.work_dir else None
+        ) as tmp_dir:
             try:
                 completed = subprocess.run(
                     [sys.executable, "-c", code],
@@ -43,7 +46,11 @@ class SandboxRunner:
                     text=True,
                     timeout=timeout,
                     cwd=tmp_dir,
-                    env={**dict(__import__("os").environ), "PYTHONPATH": str(Path(__file__).resolve().parents[2])},
+                    env={
+                        **dict(__import__("os").environ),
+                        "PYTHONPATH": str(Path(__file__).resolve().parents[2]),
+                    },
+                    check=False,
                 )
                 duration = time.perf_counter() - started
                 return SandboxResult(
@@ -59,7 +66,8 @@ class SandboxRunner:
                     success=False,
                     exit_code=-1,
                     stdout=exc.stdout or "",
-                    stderr=(exc.stderr or "") + f"\nExecution timed out after {timeout} seconds",
+                    stderr=(exc.stderr or "")
+                    + f"\nExecution timed out after {timeout} seconds",
                     duration_seconds=round(duration, 4),
                     error="timeout",
                 )

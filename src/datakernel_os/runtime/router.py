@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 
@@ -27,7 +27,11 @@ class OmniRouteRouter:
 
     def choose_model(self, preferred_model: str | None = None) -> str:
         """Return the best available model for the active request."""
-        candidates = [preferred_model, self.config.default_model, *self.config.fallback_models]
+        candidates = [
+            preferred_model,
+            self.config.default_model,
+            *self.config.fallback_models,
+        ]
         for model in candidates:
             if model:
                 return model
