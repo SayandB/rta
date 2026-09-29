@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
 from datakernel_os.memory.store import MemoryStore
+from datakernel_os.observation import ObservationRecord, normalize_observation
 from datakernel_os.runtime.router import OmniRouteConfig, OmniRouteRouter
 from datakernel_os.sandbox.runner import SandboxResult, SandboxRunner
 from datakernel_os.system.system_graph import SystemGraph, SystemModule
@@ -61,7 +63,23 @@ class AgentLoop:
         }.items():
             self.system_graph.register(SystemModule(name=module_name, kind=kind, enabled=True))
 
-    def run(self, prompt: str, system_prompt: str | None = None, *, code: str | None = None, context: dict[str, Any] | None = None) -> AgentTaskResult:
+    def _normalize_observations(
+        self,
+        observations: list[ObservationRecord | dict[str, Any]] | None,
+    ) -> list[dict[str, Any]]:
+        if not observations:
+            return []
+        return [normalize_observation(observation).as_dict() for observation in observations]
+
+    def run(
+        self,
+        prompt: str,
+        system_prompt: str | None = None,
+        *,
+        code: str | None = None,
+        context: dict[str, Any] | None = None,
+        observations: list[ObservationRecord | dict[str, Any]] | None = None,
+    ) -> AgentTaskResult:
         """Run a single task and persist the request/response in memory."""
         if not prompt or not prompt.strip():
             raise ValueError("Prompt cannot be empty")
@@ -72,6 +90,15 @@ class AgentLoop:
             context=context or {},
             code=code,
         )
+
+        normalized_observations = self._normalize_observations(observations)
+        if normalized_observations:
+            task.context["observations"] = normalized_observations
+            context_lines = [
+                f"Observation {index} [{entry['source']}]: {json.dumps(entry['payload'], sort_keys=True)}"
+                for index, entry in enumerate(normalized_observations, start=1)
+            ]
+            task.prompt = f"{task.prompt}\n\nObserved context:\n" + "\n".join(context_lines)
 
         payload = self.router.route(
             prompt=task.prompt,
