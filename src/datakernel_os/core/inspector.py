@@ -17,7 +17,9 @@ class SchemaInspector:
     def __init__(self, workspace_client: WorkspaceClient | None = None) -> None:
         self.workspace_client = workspace_client
 
-    def get_table_schema(self, catalog: str, schema: str, table: str) -> list[dict[str, Any]]:
+    def get_table_schema(
+        self, catalog: str, schema: str, table: str
+    ) -> list[dict[str, Any]]:
         """Retrieve column metadata for a Unity Catalog table."""
         if not self.workspace_client:
             token = os.getenv("DATABRICKS_TOKEN")

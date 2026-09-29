@@ -7,6 +7,7 @@ timeline
     section Foundation
         Runtime control plane : Gateway adapter, memory store, sandbox runner
         System graph manifest : Declarative module registry and health metadata
+        Developer automation : T-007, pinned Ruff, pre-commit, bounded backlog runner
 
     section Intelligence
         Agent loop : Persist task state, build prompts, and execute steps
@@ -22,6 +23,10 @@ timeline
         Wallet rails : Simulated funding, micro-transactions, and budget tracking
         Digital labor : Automations that generate value and pay operational costs
         Scale layer : Cloud provider bridges and external execution nodes
+
+    section Hardware and governance
+        Linux readiness audit : T-008, GPU driver CUDA headers and BTF inventory
+        AI pull request review : T-009, Copilot review with maintainer approval
 ```
 
 ## Dependency order

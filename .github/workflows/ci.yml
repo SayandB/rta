@@ -11,8 +11,33 @@ on:
       - main
       - dev
 
+permissions:
+  contents: read
+
 jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Ruff
+        run: python -m pip install ruff==0.16.9
+
+      - name: Check formatting
+        run: python -m ruff format --check src tests
+
+      - name: Run lint checks
+        run: python -m ruff check src tests
+
   test:
+    name: test (${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -37,8 +62,17 @@ jobs:
       - name: Run tests
         run: pytest -q
 
-      - name: Confirm branch safety and task linkage intent
-        if: github.event_name == 'pull_request'
+  task-linkage:
+    name: task-linkage
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Confirm task or issue linkage
         run: |
           python - <<'PY'
           import os

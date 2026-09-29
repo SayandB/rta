@@ -1,0 +1,34 @@
+{
+  "tasks": [
+    {
+      "attempts": 1,
+      "description": "Verify reproducible lint, formatting, and tests for developer automation",
+      "id": "T-007",
+      "last_output": "$ python -m ruff check src tests\nAll checks passed!\n\n$ python -m ruff format --check src tests\n28 files already formatted\n\n$ pytest -q\n...................                                                      [100%]\n=============================== warnings summary ===============================\n<frozen importlib._bootstrap>:488\n  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google.protobuf.pyext._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.\n\n<frozen importlib._bootstrap>:488\n  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google.protobuf.pyext._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n19 passed, 2 warnings in 2.92s\n",
+      "status": "completed",
+      "verification_commands": [
+        [
+          "python",
+          "-m",
+          "ruff",
+          "check",
+          "src",
+          "tests"
+        ],
+        [
+          "python",
+          "-m",
+          "ruff",
+          "format",
+          "--check",
+          "src",
+          "tests"
+        ],
+        [
+          "pytest",
+          "-q"
+        ]
+      ]
+    }
+  ]
+}
