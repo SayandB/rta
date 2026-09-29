@@ -1,18 +1,14 @@
 # GitHub ruleset policy
 
-These repository settings should be enforced in GitHub under Repository settings -> Rules -> Rulesets.
+The active repository ruleset is `Protect main and dev` (ID `24205350`). It targets `main` and `dev` and is enforced by GitHub.
 
-## Recommended ruleset
+## Enforced rules
 
-Create a ruleset for `main` and `dev` with the following requirements:
-
-- Require a pull request before merging
-- Require approvals: 1 reviewer minimum for feature branches; 2 for direct changes to `main`
-- Require status checks to pass before merge
-- Require branches to be up to date before merge
-- Require conversation resolution before merge
-- Restrict force pushes
-- Prevent deletions of protected branches
+- Require a pull request and one approval from someone other than the latest pusher
+- Dismiss stale approvals after new commits
+- Require review conversations to be resolved
+- Require all listed status checks and require the branch to be up to date
+- Block force pushes and deletion of protected branches
 
 ## Required status checks
 
@@ -24,7 +20,7 @@ Use the following exact check names in the ruleset requirement list:
 - `test (3.11)`
 - `ai-review`
 
-The AI review job uses GitHub's Copilot inference action. Add an Actions repository secret named `COPILOT_PAT` containing a token authorized for Copilot CLI inference; the workflow intentionally fails closed when the secret is absent or the model returns no review.
+The AI review job uses GitHub's Copilot inference action. The Actions repository secret `COPILOT_PAT` must contain a token authorized for Copilot CLI inference; the workflow intentionally fails closed when the secret is absent or the model returns no review. The current repository has no such secret configured, so AI review checks will fail until an administrator adds it.
 
 ## Merge policy
 
