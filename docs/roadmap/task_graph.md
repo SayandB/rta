@@ -11,7 +11,7 @@ timeline
     section Intelligence
         Agent loop : Persist task state, build prompts, and execute steps
         Orchestrator : Multi-step planning, tool routing, and repair logic
-        Memory tiers : Working, episodic, semantic, and archival recall
+        Memory tiers : T-010, typed working, episodic, semantic, and archival recall
 
     section Autonomous ops
         Browser and OSINT : Headless observation and external signal gathering
