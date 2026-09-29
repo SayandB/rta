@@ -58,6 +58,10 @@ Unlike conventional operating systems that map file systems and CPU threads to l
 
 ![Security sandbox isolation model](docs/architecture/ats_security_sandbox_isolation_model.png)
 
+### Task graph and execution roadmap
+
+See the dependency roadmap in [docs/roadmap/task_graph.md](docs/roadmap/task_graph.md) for the phased build plan covering runtime control plane, memory, sandboxing, autonomous operations, and economic rails.
+
 ---
 
 ## 📂 Repository Structure
