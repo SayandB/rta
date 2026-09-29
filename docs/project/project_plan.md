@@ -97,6 +97,15 @@ Acceptance criteria:
 - scale decisions are driven by guardrails and policy
 - system can decide when to expand or constrain execution
 
+### T-010: Tiered memory recall
+Description: add typed working, episodic, semantic, and archival memory access over the existing filesystem-backed store.
+Acceptance criteria:
+- tier values are validated and exposed as a public type
+- tier-aware write, read, and list operations reuse existing storage
+- cross-tier search returns the source tier and record key
+- legacy scope-based APIs remain compatible
+- tests cover tier operations, invalid input, and legacy behavior
+
 ## PR and task linkage requirements
 
 Every pull request must be linked to a task or issue. Use the PR template and include either:

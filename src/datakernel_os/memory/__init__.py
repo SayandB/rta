@@ -1,5 +1,5 @@
 """Memory management primitives for the agent runtime."""
 
-from .store import MemoryStore
+from .store import MemorySearchResult, MemoryStore, MemoryTier
 
-__all__ = ["MemoryStore"]
+__all__ = ["MemorySearchResult", "MemoryStore", "MemoryTier"]
