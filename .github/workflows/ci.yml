@@ -1,14 +1,23 @@
 name: CI
 
 on:
-  pull_request:
-    branches: [main]
   push:
-    branches: [main]
+    branches:
+      - main
+      - dev
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - dev
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11']
 
     steps:
       - name: Check out repository
@@ -17,7 +26,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
@@ -27,3 +36,22 @@ jobs:
 
       - name: Run tests
         run: pytest -q
+
+      - name: Confirm branch safety and task linkage intent
+        if: github.event_name == 'pull_request'
+        run: |
+          python - <<'PY'
+          import os
+          body = os.environ.get('PR_BODY', '')
+          checks = [
+              'Fixes #',
+              'Closes #',
+              'Task:',
+              'Related task:',
+          ]
+          if not any(token in body for token in checks):
+              raise SystemExit('Pull requests must reference a task or issue with "Fixes #", "Closes #", or "Task:".')
+          print('PR task linkage check passed')
+          PY
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}

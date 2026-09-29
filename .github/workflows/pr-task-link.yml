@@ -1,0 +1,30 @@
+name: PR task linkage
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches:
+      - main
+      - dev
+
+jobs:
+  validate-task-link:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate linked task or issue
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          python - <<'PY'
+          import os
+          body = os.environ.get('PR_BODY', '') or ''
+          required_markers = (
+              'Fixes #',
+              'Closes #',
+              'Task:',
+              'Related task:',
+          )
+          if not any(marker in body for marker in required_markers):
+              raise SystemExit('PR body must include a task or issue reference such as "Fixes #123", "Closes #123", or "Task: T-001".')
+          print('PR task linkage check passed')
+          PY
