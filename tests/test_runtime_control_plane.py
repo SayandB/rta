@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-
 from datakernel_os.memory.store import MemoryStore
 from datakernel_os.runtime.router import OmniRouteConfig, OmniRouteRouter
 from datakernel_os.sandbox.runner import SandboxRunner

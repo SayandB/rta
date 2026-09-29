@@ -97,6 +97,29 @@ Acceptance criteria:
 - scale decisions are driven by guardrails and policy
 - system can decide when to expand or constrain execution
 
+### T-007: Developer automation and bounded task runner
+Description: make local and CI verification reproducible, and execute roadmap verification tasks with explicit limits.
+Acceptance criteria:
+- Ruff and pre-commit versions/rules are repository-owned
+- CI exposes stable lint, task-linkage, and Python matrix checks
+- backlog tasks use allowlisted argument arrays and persist verification outcomes
+- retries are bounded and automation never commits or pushes changes
+
+### T-008: Linux hardware readiness
+Description: inspect the remote Linux host before designing GPU, Triton, or eBPF integrations.
+Acceptance criteria:
+- read-only audit reports GPU/driver, CUDA compiler, kernel headers, and BTF availability
+- audit is platform-aware and does not mutate the host
+- hardware-specific implementation remains gated on an actual host report
+
+### T-009: Model-backed pull request review
+Description: add Gemini-backed PR-Agent reviews to every non-draft pull request.
+Acceptance criteria:
+- workflow reviews a bounded diff and posts actionable findings
+- missing credentials or empty model output fail the required check
+- AI review remains advisory and does not replace maintainer approval
+- prompt treats repository content as untrusted input
+
 ## PR and task linkage requirements
 
 Every pull request must be linked to a task or issue. Use the PR template and include either:

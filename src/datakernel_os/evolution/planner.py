@@ -23,11 +23,19 @@ class EvolutionRecommendation:
 class RuntimePlanner:
     """Maps evaluation results to conservative changes in the system graph."""
 
-    def __init__(self, system_graph: SystemGraph | None = None, evaluator: SelfEvaluationEngine | None = None) -> None:
+    def __init__(
+        self,
+        system_graph: SystemGraph | None = None,
+        evaluator: SelfEvaluationEngine | None = None,
+    ) -> None:
         self.system_graph = system_graph or SystemGraph(name="rta")
-        self.evaluator = evaluator or SelfEvaluationEngine(system_graph=self.system_graph)
+        self.evaluator = evaluator or SelfEvaluationEngine(
+            system_graph=self.system_graph
+        )
 
-    def _recommend_for(self, module: str, evaluation: ModuleEvaluation) -> EvolutionRecommendation:
+    def _recommend_for(
+        self, module: str, evaluation: ModuleEvaluation
+    ) -> EvolutionRecommendation:
         if evaluation.status == "critical":
             return EvolutionRecommendation(
                 module=module,
@@ -43,7 +51,11 @@ class RuntimePlanner:
                 action="reconfigure",
                 reason=f"Module '{module}' is degraded; increase observation and reduce execution breadth.",
                 confidence=0.8,
-                configuration={"enabled": True, "monitoring": True, "review_required": True},
+                configuration={
+                    "enabled": True,
+                    "monitoring": True,
+                    "review_required": True,
+                },
             )
 
         return EvolutionRecommendation(
@@ -57,9 +69,14 @@ class RuntimePlanner:
     def build_plan(self) -> dict[str, EvolutionRecommendation]:
         """Generate a conservative action plan from the latest evaluation snapshot."""
         evaluations = self.evaluator.evaluate()
-        return {module: self._recommend_for(module, evaluation) for module, evaluation in evaluations.items()}
+        return {
+            module: self._recommend_for(module, evaluation)
+            for module, evaluation in evaluations.items()
+        }
 
-    def apply_plan(self, plan: dict[str, EvolutionRecommendation] | None = None) -> dict[str, SystemGraph]:
+    def apply_plan(
+        self, plan: dict[str, EvolutionRecommendation] | None = None
+    ) -> dict[str, SystemGraph]:
         """Apply the plan to the system graph while preserving safe default settings."""
         planned = plan or self.build_plan()
         updated: dict[str, SystemGraph] = {}

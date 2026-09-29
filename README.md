@@ -154,6 +154,25 @@ The AST validator enforces a strict read-bounded execution sandbox:
 
 Contributions are welcome. Please feel free to open an issue or submit a pull request for new kernel features, AST sandbox rules, or orchestrator improvements.
 
+### Local checks and bounded backlog runner
+
+Install development tooling and hooks with:
+
+```bash
+python -m pip install -r requirements-dev.txt
+pre-commit install --hook-type pre-commit --hook-type commit-msg
+```
+
+Run the next pending, allowlisted verification task with:
+
+```bash
+PYTHONPATH=src python -m datakernel_os.autonomy.backlog --backlog backlog.json
+```
+
+The runner records verification state and stops after at most three remediation retries. It does not apply model-generated patches, commit, or push; those actions remain subject to normal review and branch protections. See [docs/project/autonomous_runner.md](docs/project/autonomous_runner.md).
+
+For Gemini-powered AI PR reviews, configure the `GEMINI_API_KEY` repository Actions secret as described in [docs/project/github_ruleset_policy.md](docs/project/github_ruleset_policy.md). For remote GPU/eBPF readiness, run the read-only [hardware audit](docs/project/hardware_readiness.md) on the Linux workstation before implementing hardware-specific modules.
+
 ---
 
 ## 📄 License
