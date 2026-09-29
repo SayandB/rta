@@ -22,7 +22,7 @@ Use the following exact check names in the ruleset requirement list:
 
 The AI review job uses PR-Agent with Google AI Studio Gemini Flash. Add the Actions repository secret `GEMINI_API_KEY` with a newly created Gemini API key. The workflow intentionally fails when the provider key is absent or the review action fails. Gemini free-tier availability and quotas are controlled by Google and may change. Keys must never be committed or pasted into pull requests or chat.
 
-The workflow uses `pull_request_target` so fork PRs can be reviewed without exposing secrets to contributor workflows. It does not check out or execute PR code, and its token is limited to reading contents and writing PR reviews/comments. Keep it checkout-free; adding steps that run code from the PR would cross the security boundary.
+Same-repository PRs use `pull_request`; fork PRs use base-controlled `pull_request_target` because fork workflows cannot access repository secrets. The workflow does not check out or execute PR code, and its token is limited to reading contents and writing PR reviews/comments. Keep both paths checkout-free; adding steps that run code from the PR would cross the security boundary.
 
 ## Merge policy
 
