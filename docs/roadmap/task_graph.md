@@ -26,7 +26,7 @@ timeline
 
     section Hardware and governance
         Linux readiness audit : T-008, GPU driver CUDA headers and BTF inventory
-        AI pull request review : T-009, Copilot review with maintainer approval
+        AI pull request review : T-009, Gemini PR-Agent review with maintainer approval
 ```
 
 ## Dependency order

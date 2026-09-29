@@ -113,7 +113,7 @@ Acceptance criteria:
 - hardware-specific implementation remains gated on an actual host report
 
 ### T-009: Model-backed pull request review
-Description: add Copilot-backed review comments to every non-draft pull request.
+Description: add Gemini-backed PR-Agent reviews to every non-draft pull request.
 Acceptance criteria:
 - workflow reviews a bounded diff and posts actionable findings
 - missing credentials or empty model output fail the required check

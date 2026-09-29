@@ -171,7 +171,7 @@ PYTHONPATH=src python -m datakernel_os.autonomy.backlog --backlog backlog.json
 
 The runner records verification state and stops after at most three remediation retries. It does not apply model-generated patches, commit, or push; those actions remain subject to normal review and branch protections. See [docs/project/autonomous_runner.md](docs/project/autonomous_runner.md).
 
-For AI PR reviews, configure the `COPILOT_PAT` repository Actions secret as described in [docs/project/github_ruleset_policy.md](docs/project/github_ruleset_policy.md). For remote GPU/eBPF readiness, run the read-only [hardware audit](docs/project/hardware_readiness.md) on the Linux workstation before implementing hardware-specific modules.
+For Gemini-powered AI PR reviews, configure the `GEMINI_API_KEY` repository Actions secret as described in [docs/project/github_ruleset_policy.md](docs/project/github_ruleset_policy.md). For remote GPU/eBPF readiness, run the read-only [hardware audit](docs/project/hardware_readiness.md) on the Linux workstation before implementing hardware-specific modules.
 
 ---
 

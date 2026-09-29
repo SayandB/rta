@@ -20,7 +20,7 @@ Use the following exact check names in the ruleset requirement list:
 - `test (3.11)`
 - `ai-review`
 
-The AI review job uses GitHub's Copilot inference action. The Actions repository secret `COPILOT_PAT` must contain a token authorized for Copilot CLI inference; the workflow intentionally fails closed when the secret is absent or the model returns no review. The current repository has no such secret configured, so AI review checks will fail until an administrator adds it.
+The AI review job uses PR-Agent with Google AI Studio Gemini Flash. Add the Actions repository secret `GEMINI_API_KEY` with a newly created Gemini API key. The workflow intentionally fails when the provider key is absent or the review action fails. Gemini free-tier availability and quotas are controlled by Google and may change. Keys must never be committed or pasted into pull requests or chat.
 
 ## Merge policy
 
