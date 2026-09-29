@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Any, Optional
-
-from dotenv import load_dotenv
+from typing import Any
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.errors import DatabricksError
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -27,9 +26,9 @@ class KernelConfig:
     aws_region: str
     s3_bucket: str
     databricks_host: str
-    databricks_token: Optional[str] = None
-    aws_access_key_id: Optional[str] = None
-    aws_secret_access_key: Optional[str] = None
+    databricks_token: str | None = None
+    aws_access_key_id: str | None = None
+    aws_secret_access_key: str | None = None
 
 
 class DataKernelOSKernel:
@@ -39,8 +38,8 @@ class DataKernelOSKernel:
         self.config = config
         # Keep the lazily initialized client handles in private attributes so the
         # public properties can be read safely after construction.
-        self._s3_client: Optional[Any] = None
-        self._workspace_client: Optional[WorkspaceClient] = None
+        self._s3_client: Any | None = None
+        self._workspace_client: WorkspaceClient | None = None
 
     @property
     def s3_client(self) -> Any:
@@ -93,7 +92,12 @@ class DataKernelOSKernel:
         """Validate connectivity to the configured storage and compute planes."""
         try:
             self.s3_client.head_bucket(Bucket=self.config.s3_bucket)
-            self.workspace_client.config.host
+            self.workspace_client.current_user.me()
             return True
-        except (KernelConnectionError, BotoCoreError, ClientError, DatabricksError) as exc:
+        except (
+            KernelConnectionError,
+            BotoCoreError,
+            ClientError,
+            DatabricksError,
+        ) as exc:
             raise KernelConnectionError("Kernel connectivity check failed") from exc

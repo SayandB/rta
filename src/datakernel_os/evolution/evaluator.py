@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
 from datakernel_os.memory.store import MemoryStore
 from datakernel_os.system.system_graph import SystemGraph
@@ -34,13 +33,23 @@ class ModuleEvaluation:
 class SelfEvaluationEngine:
     """Synthesizes runtime telemetry into safe, actionable structural recommendations."""
 
-    def __init__(self, system_graph: SystemGraph | None = None, memory_store: MemoryStore | None = None) -> None:
+    def __init__(
+        self,
+        system_graph: SystemGraph | None = None,
+        memory_store: MemoryStore | None = None,
+    ) -> None:
         self.system_graph = system_graph or SystemGraph(name="rta")
-        self.memory_store = memory_store or MemoryStore(root_dir="/tmp/rta_runtime_memory")
+        self.memory_store = memory_store or MemoryStore(
+            root_dir="/tmp/rta_runtime_memory"
+        )
 
-    def record_signal(self, module: str, metric: str, value: float, timestamp: str | None = None) -> TelemetrySignal:
+    def record_signal(
+        self, module: str, metric: str, value: float, timestamp: str | None = None
+    ) -> TelemetrySignal:
         """Record a scalar signal for a subsystem and return the observation."""
-        signal = TelemetrySignal(module=module, metric=metric, value=value, timestamp=timestamp)
+        signal = TelemetrySignal(
+            module=module, metric=metric, value=value, timestamp=timestamp
+        )
         self.memory_store.write(
             scope="telemetry",
             key=f"{module}-{metric}-{signal.timestamp or 'now'}",
@@ -78,7 +87,9 @@ class SelfEvaluationEngine:
                     samples=0,
                     success_rate=0.0,
                     status="healthy",
-                    recommendations=["No runtime telemetry available; continue monitoring."],
+                    recommendations=[
+                        "No runtime telemetry available; continue monitoring."
+                    ],
                 )
                 continue
 
@@ -90,10 +101,18 @@ class SelfEvaluationEngine:
 
             success_rate = pass_count / len(module_events) if module_events else 0.0
             score = round(success_rate, 3)
-            status = "healthy" if score >= 0.8 else "degraded" if score >= 0.5 else "critical"
+            status = (
+                "healthy"
+                if score >= 0.8
+                else "degraded"
+                if score >= 0.5
+                else "critical"
+            )
             recommendations: list[str] = []
             if score < 0.8:
-                recommendations.append(f"Module '{module_name}' needs targeted diagnostics and safer execution constraints.")
+                recommendations.append(
+                    f"Module '{module_name}' needs targeted diagnostics and safer execution constraints."
+                )
 
             module_scores[module_name] = ModuleEvaluation(
                 module=module_name,

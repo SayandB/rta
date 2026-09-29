@@ -27,16 +27,24 @@ class RtaShell:
 
     async def process_command(self, user_input: str) -> None:
         """Translate intent, validate AST, and execute the resulting Spark snippet."""
-        self.console.print("[bold yellow]Synthesizing PySpark execution plan...[/bold yellow]")
+        self.console.print(
+            "[bold yellow]Synthesizing PySpark execution plan...[/bold yellow]"
+        )
         spark_code = await self.orchestrator.translate_intent_to_spark(user_input)
 
         self.console.print("[bold green]Generated PySpark Code:[/bold green]")
         self.console.print(spark_code)
 
-        input_path = os.getenv("SAMPLE_INPUT_PATH", "s3://datakernel-lakehouse/raw/data.csv")
-        output_path = os.getenv("SAMPLE_OUTPUT_PATH", "s3://datakernel-lakehouse/output/processed")
+        input_path = os.getenv(
+            "SAMPLE_INPUT_PATH", "s3://datakernel-lakehouse/raw/data.csv"
+        )
+        output_path = os.getenv(
+            "SAMPLE_OUTPUT_PATH", "s3://datakernel-lakehouse/output/processed"
+        )
 
-        self.console.print("[bold yellow]Submitting workload to Spark execution agent...[/bold yellow]")
+        self.console.print(
+            "[bold yellow]Submitting workload to Spark execution agent...[/bold yellow]"
+        )
         result_path = await self.agent.submit_with_retry_async(
             generated_code=spark_code,
             input_path=input_path,
@@ -44,7 +52,9 @@ class RtaShell:
             orchestrator=self.orchestrator,
             objective=user_input,
         )
-        self.console.print(f"[bold green]Job executed successfully. Output written to:[/bold green] {result_path}")
+        self.console.print(
+            f"[bold green]Job executed successfully. Output written to:[/bold green] {result_path}"
+        )
 
     def run(self) -> None:
         """Launch the interactive terminal loop."""
@@ -72,8 +82,10 @@ class RtaShell:
 
             try:
                 asyncio.run(self.process_command(user_input))
-            except Exception as exc:  # pylint: disable=broad-except
-                self.console.print(f"[bold red]Kernel Execution Error:[/bold red] {exc}")
+            except Exception as exc:  # noqa: BLE001 - Keep the interactive shell alive after runtime/provider errors.
+                self.console.print(
+                    f"[bold red]Kernel Execution Error:[/bold red] {exc}"
+                )
 
 
 if __name__ == "__main__":

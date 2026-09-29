@@ -14,7 +14,11 @@ Describe the change and why it is needed.
 
 ## Reviewer comment
 
-Add a short review comment explaining the objective, key risks, and validation.
+Add a short review comment explaining the objective, key risks, validation, and whether the design adheres to the project GOF and optimization guardrails.
+
+## AI review
+
+- [ ] AI review summary was generated or reviewed by an AI validation workflow
 
 ## Validation
 

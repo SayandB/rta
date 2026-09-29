@@ -6,6 +6,8 @@ This repository is the control plane for an autonomous runtime that orchestrates
 
 - Project brief: [docs/project/project_plan.md](docs/project/project_plan.md)
 - Branch policy: [docs/project/branch_policy.md](docs/project/branch_policy.md)
+- Ruleset policy: [docs/project/github_ruleset_policy.md](docs/project/github_ruleset_policy.md)
+- GOF design guidance: [docs/project/gof_design_guidelines.md](docs/project/gof_design_guidelines.md)
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Apache Spark](https://img.shields.io/badge/Apache--Spark-3.3%2B-orange.svg)](https://spark.apache.org/)
